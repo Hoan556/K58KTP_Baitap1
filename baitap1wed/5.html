@@ -1,0 +1,94 @@
+<!-- playfair.html -->
+<!doctype html><html><head><meta charset="utf-8"><title>Playfair</title>
+<style>body{font-family:system-ui;padding:16px;max-width:900px;margin:auto}textarea{width:100%;height:90px}</style>
+</head><body>
+<h2>Playfair Cipher</h2>
+<input id="key" placeholder="Key"/><br/>
+<textarea id="text" placeholder="Plaintext or Ciphertext"></textarea><br/>
+<button id="enc">Encrypt</button><button id="dec">Decrypt</button>
+<textarea id="out" readonly></textarea>
+<script>
+function prepareKey(key){
+  key = key.toUpperCase().replace(/[^A-Z]/g,'').replace(/J/g,'I');
+  let seen = {}, s='';
+  for(let c of key) if(!seen[c]){ seen[c]=true; s+=c; }
+  for(let c='A'.charCodeAt(0); c<='Z'.charCodeAt(0); c++){
+    let ch = String.fromCharCode(c);
+    if(ch==='J') continue;
+    if(!seen[ch]){ seen[ch]=true; s+=ch; }
+  }
+  return s;
+}
+function buildTable(key){
+  let s = prepareKey(key);
+  let table = [], pos = {};
+  for(let r=0;r<5;r++){
+    let row = [];
+    for(let c=0;c<5;c++){
+      let ch = s[r*5 + c];
+      row.push(ch);
+      pos[ch]=[r,c];
+    }
+    table.push(row);
+  }
+  return {table,pos};
+}
+function makePairs(pt){
+  let s = pt.toUpperCase().replace(/[^A-Z]/g,'').replace(/J/g,'I');
+  let pairs = [];
+  for(let i=0;i<s.length;){
+    let a = s[i];
+    let b = s[i+1];
+    if(!b || a===b){ pairs.push([a,'X']); i += (a===b)?1:1; }
+    else { pairs.push([a,b]); i += 2; }
+  }
+  if(pairs.length>0 && pairs[pairs.length-1][1]===undefined) pairs[pairs.length-1][1]='X';
+  return pairs;
+}
+function enc(pt,key){
+  let {table,pos} = buildTable(key);
+  let pairs = makePairs(pt);
+  let ct='';
+  for(let [A,B] of pairs){
+    let pa = pos[A], pb = pos[B];
+    if(pa[0]===pb[0]){ // row
+      ct += table[pa[0]][(pa[1]+1)%5];
+      ct += table[pb[0]][(pb[1]+1)%5];
+    } else if(pa[1]===pb[1]){ // col
+      ct += table[(pa[0]+1)%5][pa[1]];
+      ct += table[(pb[0]+1)%5][pb[1]];
+    } else {
+      ct += table[pa[0]][pb[1]];
+      ct += table[pb[0]][pa[1]];
+    }
+  }
+  return ct;
+}
+function dec(ct,key){
+  let {table,pos} = buildTable(key);
+  let pt='';
+  for(let i=0;i<ct.length;i+=2){
+    let A = ct[i].toUpperCase(), B = ct[i+1].toUpperCase();
+    if(A==='J') A='I'; if(B==='J') B='I';
+    let pa = pos[A], pb = pos[B];
+    if(pa[0]===pb[0]){
+      pt += table[pa[0]][(pa[1]+5-1)%5];
+      pt += table[pb[0]][(pb[1]+5-1)%5];
+    } else if(pa[1]===pb[1]){
+      pt += table[(pa[0]+5-1)%5][pa[1]];
+      pt += table[(pb[0]+5-1)%5][pb[1]];
+    } else {
+      pt += table[pa[0]][pb[1]];
+      pt += table[pb[0]][pa[1]];
+    }
+  }
+  return pt;
+}
+document.getElementById('enc').onclick = ()=> {
+  document.getElementById('out').value = enc(document.getElementById('text').value, document.getElementById('key').value);
+};
+document.getElementById('dec').onclick = ()=> {
+  document.getElementById('out').value = dec(document.getElementById('text').value, document.getElementById('key').value);
+};
+</script>
+</body></html>

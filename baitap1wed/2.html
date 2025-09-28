@@ -1,0 +1,50 @@
+<!-- affine.html -->
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Affine Cipher</title>
+<style>body{font-family:system-ui;padding:16px;max-width:800px;margin:auto}textarea{width:100%;height:100px}</style>
+</head><body>
+<h2>Affine Cipher</h2>
+<textarea id="text" placeholder="Text..."></textarea>
+<div>
+<label>a <input id="a" type="number" value="5"></label>
+<label>b <input id="b" type="number" value="8"></label>
+</div>
+<button id="enc">Encrypt</button> <button id="dec">Decrypt</button>
+<textarea id="out" readonly></textarea>
+
+<script>
+function modInv(a,m){
+  a = ((a % m)+m)%m;
+  for(let x=1;x<m;x++) if((a*x)%m==1) return x;
+  return null;
+}
+function affine(s,a,b){
+  return s.split('').map(ch=>{
+    if(ch>='A'&&ch<='Z'){
+      let x = ch.charCodeAt(0)-65;
+      return String.fromCharCode(65 + ((a*x+b)%26+26)%26);
+    }
+    if(ch>='a'&&ch<='z'){
+      let x = ch.charCodeAt(0)-97;
+      return String.fromCharCode(97 + ((a*x+b)%26+26)%26);
+    }
+    return ch;
+  }).join('');
+}
+document.getElementById('enc').onclick = ()=>{
+  const t=document.getElementById('text').value;
+  const a=parseInt(document.getElementById('a').value)||0;
+  const b=parseInt(document.getElementById('b').value)||0;
+  document.getElementById('out').value = affine(t,a,b);
+};
+document.getElementById('dec').onclick = ()=>{
+  const t=document.getElementById('text').value;
+  const a=parseInt(document.getElementById('a').value)||0;
+  const b=parseInt(document.getElementById('b').value)||0;
+  const inv = modInv(a,26);
+  if(inv===null){ document.getElementById('out').value = "a không có nghịch đảo mod 26"; return; }
+  // decrypt by using a_inv and -a_inv*b
+  document.getElementById('out').value = affine(t,inv, (-inv*b));
+};
+</script>
+</body></html>

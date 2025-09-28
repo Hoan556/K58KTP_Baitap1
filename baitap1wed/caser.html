@@ -1,0 +1,47 @@
+<!-- caesar.html -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Caesar Cipher</title>
+<style>
+body{font-family:system-ui;padding:16px;max-width:800px;margin:auto}
+label{display:block;margin-top:8px}
+textarea{width:100%;height:100px}
+input[type=number]{width:80px}
+button{margin-top:8px;padding:8px 12px}
+</style>
+</head>
+<body>
+<h2>Caesar Cipher</h2>
+<label>Plain / Cipher text
+<textarea id="text"></textarea></label>
+<label>Key (shift)
+<input id="key" type="number" value="3" /></label>
+<button id="enc">Encrypt</button>
+<button id="dec">Decrypt</button>
+<label>Output
+<textarea id="out" readonly></textarea></label>
+
+<script>
+function caesar(s,k){
+  k = ((k%26)+26)%26;
+  return s.split('').map(ch=>{
+    if(ch>='A' && ch<='Z') return String.fromCharCode('A'.charCodeAt(0) + (ch.charCodeAt(0)-'A'.charCodeAt(0)+k)%26);
+    if(ch>='a' && ch<='z') return String.fromCharCode('a'.charCodeAt(0) + (ch.charCodeAt(0)-'a'.charCodeAt(0)+k)%26);
+    return ch;
+  }).join('');
+}
+document.getElementById('enc').onclick = ()=> {
+  const t=document.getElementById('text').value;
+  const k=parseInt(document.getElementById('key').value)||0;
+  document.getElementById('out').value = caesar(t,k);
+};
+document.getElementById('dec').onclick = ()=> {
+  const t=document.getElementById('text').value;
+  const k=parseInt(document.getElementById('key').value)||0;
+  document.getElementById('out').value = caesar(t,-k);
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!-- columnar.html -->
+<!doctype html><html><head><meta charset="utf-8"><title>Columnar Transposition</title>
+<style>body{font-family:system-ui;padding:16px;max-width:900px;margin:auto}textarea{width:100%;height:90px}</style>
+</head><body>
+<h2>Columnar Transposition</h2>
+<textarea id="text" placeholder="Plaintext"></textarea>
+<input id="key" placeholder="Key (e.g. ZEBRA)"/>
+<button id="enc">Encrypt</button><button id="dec">Decrypt</button>
+<textarea id="out" readonly></textarea>
+<script>
+function keyOrder(key){
+  let arr = key.split('').map((c,i)=>({c:i}));
+  arr = key.split('').map((c,i)=>({ch:c, idx:i}));
+  arr.sort((a,b)=> a.ch.localeCompare(b.ch));
+  let order = Array(key.length);
+  for(let i=0;i<arr.length;i++) order[arr[i].idx]=i;
+  return order;
+}
+function encrypt(pt,key){
+  let t = pt.replace(/\s+/g,''); // remove spaces
+  let n = key.length;
+  if(n==0) return t;
+  let rows = Math.ceil(t.length / n);
+  while(t.length < rows*n) t += 'X';
+  let grid = [];
+  for(let r=0;r<rows;r++) grid.push(t.slice(r*n, r*n+n));
+  let ord = keyOrder(key);
+  let ct='';
+  for(let rank=0; rank<n; rank++){
+    for(let c=0;c<n;c++){
+      if(ord[c]===rank){
+        for(let r=0;r<rows;r++) ct += grid[r][c];
+      }
+    }
+  }
+  return ct;
+}
+function decrypt(ct,key){
+  let n = key.length;
+  if(n==0) return ct;
+  let rows = Math.ceil(ct.length / n);
+  let ord = keyOrder(key);
+  let cols = Array(n).fill('');
+  let idx=0;
+  for(let rank=0; rank<n; rank++){
+    for(let c=0;c<n;c++){
+      if(ord[c]===rank){
+        cols[c] = ct.slice(idx, idx+rows);
+        idx += rows;
+      }
+    }
+  }
+  let pt='';
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<n;c++){
+      pt += (cols[c][r]||'');
+    }
+  }
+  return pt;
+}
+document.getElementById('enc').onclick = ()=>{
+  const t=document.getElementById('text').value;
+  const k=document.getElementById('key').value;
+  document.getElementById('out').value = encrypt(t,k);
+};
+document.getElementById('dec').onclick = ()=>{
+  const t=document.getElementById('text').value;
+  const k=document.getElementById('key').value;
+  document.getElementById('out').value = decrypt(t,k);
+};
+</script>
+</body></html>
